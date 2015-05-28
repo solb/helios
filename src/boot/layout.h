@@ -1,0 +1,7 @@
+#ifndef BOOT_LAYOUT_H_
+#define BOOT_LAYOUT_H_
+
+#define LAYOUT_STACK_SEGMENT 0x7e0
+#define LAYOUT_STACK_POINTER 0x200
+
+#endif
