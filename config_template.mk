@@ -10,4 +10,5 @@ CPPFLAGS :=
 CROSS_COMPILE := x86_64-pc-elf
 LDFLAGS :=
 LDLIBS :=
+OBJDIR := out
 TOOLCHAIN_DIR := toolchain/dist

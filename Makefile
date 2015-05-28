@@ -1,7 +1,6 @@
 # Default target (must come before includes)
 .PHONY: all
-all:
-	echo TODO
+all: src
 
 #
 # Includes
@@ -10,6 +9,7 @@ all:
 -include config.mk
 include  external/build.mk
 include  toolchain/build.mk
+include  src/build.mk
 
 #
 # Program variables
@@ -30,10 +30,10 @@ OBJCOPY := $(CROSS_COMPILE)-objcopy
 #
 
 .PHONY: clean
-clean:
+clean: src-clean
 
 .PHONY: distclean
-distclean: clean
+distclean: clean src-distclean
 	$(RM) config.mk
 
 #
