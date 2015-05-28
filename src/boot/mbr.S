@@ -45,7 +45,7 @@ bootsector:
 	call puts
 
 	// Load the payload from the same disk the BIOS got *us* from
-	bios_disk_xread %dl, $dap
+	bios_disk_xread %dl, $1, $LAYOUT_PAYLOAD_NUMSECTORS, $LAYOUT_PAYLOAD_POINTER
 	movb BIOS_GPR_DISK_RESULT, %al
 	movw $load_ok, %bx
 	movw $err_load_failed, %si
@@ -94,14 +94,6 @@ ret:
 // Data
 //
 
-/* "Disk Address Packet" used to formulate BIOS disk load requests */
-dap:
-	.byte BIOS_STRUCT_DISK_XREAD_SIZE
-	.byte BIOS_STRUCT_DISK_XREAD_RESERVED
-	.word LAYOUT_PAYLOAD_NUMSECTORS // Number of 512-byte sectors
-	.word LAYOUT_PAYLOAD_POINTER
-	.word LAYOUT_PAYLOAD_SEGMENT
-	.quad 1 // Index of first sector
 splash:
 	.asciz "Booting HeliOS...\r\n\n"
 stack_ok:

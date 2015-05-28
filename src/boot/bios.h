@@ -82,11 +82,27 @@
 	int $BIOS_IRQ_SCREEN
 .endm
 
-.macro bios_disk_xread disk, descr
+.macro bios_disk_xread disk startsector numsectors destaddr
+	pushw $0x0
+	pushw $0x0
+	pushw $0x0
+	pushw \startsector
+	pushw %ds
+	pushw \destaddr
+	pushw \numsectors
+	subw $2, %sp
+	movw %sp, %bp
+	movb $BIOS_STRUCT_DISK_XREAD_RESERVED, 1(%bp)
+	movb $BIOS_STRUCT_DISK_XREAD_SIZE, 0(%bp)
 	movb $BIOS_OP_DISK_XREAD, BIOS_GPR_OPERATION
 	movb \disk, BIOS_GPR_DISK_XREAD_DRIVE
-	movw \descr, BIOS_GPR_DISK_XREAD_STRUCT
+	movw %ss, %bp
+	movw %bp, %ds
+	movw %sp, BIOS_GPR_DISK_XREAD_STRUCT
 	int $BIOS_IRQ_DISK
+	movw %sp, %bp
+	movw 6(%bp), %ds
+	addw (%bp), %sp
 .endm
 
 #endif
