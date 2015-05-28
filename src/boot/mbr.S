@@ -34,7 +34,9 @@ bootsector:
 
 	// Tell the BIOS to clear the screen
 	bios_screen_mode BIOS_SCREEN_MODE_80_25_BW
+	movb %dl, %al // %al = drive
 	bios_screen_cursor $0, $0
+	movb %al, %dl // %dl = drive
 
 	// Oh, hi Mark!
 	movw $splash, %bx
