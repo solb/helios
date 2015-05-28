@@ -17,4 +17,4 @@ src-boot-distclean: src-boot-clean
 #
 
 $(OBJDIR)/boot/%: ASFLAGS := -m32
-$(OBJDIR)/boot/%: LDFLAGS := -nostdlib -Ttext=0x0 -Wl,--section-start=.bootsig=0x1fe -Wl,-m,elf_i386
+$(OBJDIR)/boot/%: LDFLAGS := -nostdlib -Ttext=0x0 -Wl,--section-start=.bootsig=0x1fe -Tdata=0x200 -Wl,-m,elf_i386

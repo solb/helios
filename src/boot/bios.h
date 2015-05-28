@@ -12,6 +12,7 @@
  */
 
 #define BIOS_IRQ_SCREEN 0x10
+#define BIOS_IRQ_DISK   0x13
 
 /*
  * Service routine signatures
@@ -30,6 +31,12 @@
 #define BIOS_OP_SCREEN_PUTC 0xe
 #define BIOS_GPR_SCREEN_PUTC_CHAR %al
 
+#define BIOS_GPR_DISK_RESULT %ah // 0 on success
+
+#define BIOS_OP_DISK_XREAD 0x42
+#define BIOS_GPR_DISK_XREAD_DRIVE %dl
+#define BIOS_GPR_DISK_XREAD_STRUCT %si // %ds ptr, word-aligned
+
 /*
  * Service routine arguments
  */
@@ -42,6 +49,14 @@
 #define BIOS_SCREEN_MODE_320_200_BW    $5
 #define BIOS_SCREEN_MODE_640_200_BW    $6
 #define BIOS_SCREEN_MODE_MONO_ONLY     $7
+
+/* "Disk Address Packet" describing a set of 512-byte sectors to load */
+#define BIOS_STRUCT_DISK_XREAD_SIZE 0x10 // 1 byte
+#define BIOS_STRUCT_DISK_XREAD_RESERVED 0x0 // 1 byte
+// BIOS_STRUCT_DISK_XREAD_NUMSECTORS (2 bytes)
+// BIOS_STRUCT_DISK_XREAD_POINTER (2 bytes)
+// BIOS_STRUCT_DISK_XREAD_SEGMENT (2 bytes)
+// BIOS_STRUCT_DISK_XREAD_FIRSTSECTOR (8 bytes)
 
 /*
  * Service macros
@@ -65,6 +80,13 @@
 	movb $BIOS_OP_SCREEN_PUTC, BIOS_GPR_OPERATION
 	movb \char, BIOS_GPR_SCREEN_PUTC_CHAR
 	int $BIOS_IRQ_SCREEN
+.endm
+
+.macro bios_disk_xread disk, descr
+	movb $BIOS_OP_DISK_XREAD, BIOS_GPR_OPERATION
+	movb \disk, BIOS_GPR_DISK_XREAD_DRIVE
+	movw \descr, BIOS_GPR_DISK_XREAD_STRUCT
+	int $BIOS_IRQ_DISK
 .endm
 
 #endif
