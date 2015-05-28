@@ -49,11 +49,3 @@ $(TOOLCHAIN_DIR)/install-%.stamp: toolchain/%/build.stamp
 
 # Add pregenerated scanner before attempting to build gcc.
 toolchain/gcc/build.stamp: external/gcc/gcc/gengtype-lex.c
-
-#
-# Special targets
-#
-
-.SECONDARY: external/binutils/config.sub
-.SECONDARY: $(patsubst %,external/%/configure,$(TOOLCHAIN_EXTERNALS))
-.SECONDARY: $(patsubst %,toolchain/%/Makefile,$(TOOLCHAIN_EXTERNALS))

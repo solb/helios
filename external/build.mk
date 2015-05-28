@@ -18,6 +18,7 @@ external-forceclean:
 # Implicit targets
 #
 
+.PRECIOUS: external/%
 external/%:
 	git submodule update --init $(@D)
 
