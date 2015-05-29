@@ -43,6 +43,11 @@ bootsector:
 	movw $stack_ok, %bx
 	call puts
 
+	call test_a20
+	movw $a20_disabled, %bx
+	movw $a20_enabled, %si
+	call report_status
+
 	// Load the payload from the same disk the BIOS got *us* from
 	movw $edata, %ax
 	subw $BIOS_MBR_LENGTH, %ax // Subtract the MBR's sector
@@ -62,6 +67,30 @@ bootsector:
 	movw $err_off_mbr_end, %bx
 	call puts
 	jmp . // Halt
+
+/* clobbers:
+ *  %ax, %bx, bootsig
+ * returns:
+ *  %al whether A20 line is enabled
+ */
+test_a20:
+	movw $0, %ax
+	movw %ax, %es
+	movw $0xffff, %ax
+	movw %ax, %fs
+	movw %ds, %bx
+	shlw $4, %bx
+	addw $bootsig, %bx
+	movw %es:(%bx), %ax
+	cmpw %fs:0x10(%bx), %ax
+	setneb %al
+	jne ret
+	addw $0x101, %ax
+	movw %ax, %es:(%bx)
+	wbinvd
+	cmpw %fs:0x10(%bx), %ax
+	setneb %al
+	ret
 
 /* params:
  *  %ax number of bytes
@@ -120,6 +149,10 @@ splash:
 	.asciz "Booting HeliOS...\r\n\n"
 stack_ok:
 	.asciz "Stack initialized\r\n"
+a20_disabled:
+	.asciz "Address line 20 appears to be tied to ground\r\n"
+a20_enabled:
+	.asciz "Address line 20 appears to be operational\r\n"
 load_ok:
 	.asciz "Payload loaded from disk\r\n"
 err_load_failed:
@@ -129,6 +162,7 @@ err_off_mbr_end:
 
 // 2-byte bootsector signature (expected by BIOS)
 .section .bootsig, "a"
+bootsig:
 	.byte 0x55
 	.byte 0xaa
 
