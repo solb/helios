@@ -34,9 +34,8 @@ bootsector:
 
 	// Tell the BIOS to clear the screen
 	bios_screen_mode BIOS_SCREEN_MODE_80_25_BW
-	movb %dl, %al // %al = drive
+	movb %dl, %cl // %cl = drive
 	bios_screen_cursor $0, $0
-	movb %al, %dl // %dl = drive
 
 	// Oh, hi Mark!
 	movw $splash, %bx
@@ -45,18 +44,39 @@ bootsector:
 	call puts
 
 	// Load the payload from the same disk the BIOS got *us* from
-	bios_disk_xread %dl, $1, $LAYOUT_PAYLOAD_NUMSECTORS, $LAYOUT_PAYLOAD_POINTER
+	movw $edata, %ax
+	subw $512, %ax // Subtract the MBR's sector
+	call bytes_to_sectors
+	bios_disk_xread %cl, $1, %ax, $LAYOUT_PAYLOAD_POINTER
 	movb BIOS_GPR_DISK_RESULT, %al
 	movw $load_ok, %bx
 	movw $err_load_failed, %si
 	call report_status
 
+	movb %cl, %dl // %dl = drive
 	jmp payload
 
 	// We should never get here!
 	movw $err_off_mbr_end, %bx
 	call puts
 	jmp . // Halt
+
+/* params:
+ *  %ax number of bytes
+ * clobbers:
+ *  %ax, %dx, %bx
+ * returns:
+ *  %ax number of sectors
+ */
+bytes_to_sectors:
+	xorw %dx, %dx
+	movw $512, %bx
+	divw %bx
+	testw %dx, %dx
+	setnzb %dl
+	xorb %dh, %dh
+	addw %dx, %ax
+	ret
 
 /* params:
  *  %al decision value
