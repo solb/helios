@@ -40,8 +40,6 @@ bootsector:
 	// Oh, hi Mark!
 	movw $splash, %bx
 	call puts
-	movw $stack_ok, %bx
-	call puts
 
 	call test_a20
 	movw $a20_disabled, %bx
@@ -146,7 +144,7 @@ ret:
 //
 
 splash:
-	.asciz "Booting HeliOS...\r\n\n"
+	.ascii "Booting HeliOS...\r\n\n"
 stack_ok:
 	.asciz "Stack initialized\r\n"
 a20_disabled:
@@ -156,7 +154,7 @@ a20_enabled:
 load_ok:
 	.asciz "Payload loaded from disk\r\n"
 err_load_failed:
-	.asciz "ERROR: Failed to load payload from disk\r\n"
+	.asciz "ERROR: Failed to load from disk\r\n"
 err_off_mbr_end:
 	.asciz "FATAL: Reached end of MBR; halting."
 
