@@ -53,8 +53,10 @@ bootsector:
 	movw $err_load_failed, %si
 	call report_status
 
+	// Put the payload in charge if we were able to load it
 	movb %cl, %dl // %dl = drive
-	jmp payload
+	testb %al, %al
+	jz payload
 
 	// We should never get here!
 	movw $err_off_mbr_end, %bx
