@@ -45,7 +45,7 @@ bootsector:
 
 	// Load the payload from the same disk the BIOS got *us* from
 	movw $edata, %ax
-	subw $512, %ax // Subtract the MBR's sector
+	subw $BIOS_MBR_LENGTH, %ax // Subtract the MBR's sector
 	call bytes_to_sectors
 	bios_disk_xread %cl, $1, %ax, $LAYOUT_PAYLOAD_POINTER
 	movb BIOS_GPR_DISK_RESULT, %al
@@ -70,7 +70,7 @@ bootsector:
  */
 bytes_to_sectors:
 	xorw %dx, %dx
-	movw $512, %bx
+	movw $BIOS_MBR_LENGTH, %bx
 	divw %bx
 	testw %dx, %dx
 	setnzb %dl

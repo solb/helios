@@ -6,6 +6,7 @@
  */
 
 #define BIOS_MBR_SEGMENT 0x7c0
+#define BIOS_MBR_LENGTH 512
 
 /*
  * Service routine IRQs
