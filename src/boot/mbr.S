@@ -1,4 +1,5 @@
 #include "bios.h"
+#include "controller.h"
 #include "layout.h"
 
 // Processor starts in real mode, so generate code for the 8086
@@ -41,10 +42,8 @@ bootsector:
 	movw $splash, %bx
 	call puts
 
-	call test_a20
-	movw $a20_disabled, %bx
-	movw $a20_enabled, %si
-	call report_status
+	// Try up to two methods of enabling the A20 gate to access all of memory
+	call enable_a20
 
 	// Load the payload from the same disk the BIOS got *us* from
 	movw $edata, %ax
@@ -68,8 +67,37 @@ bootsector:
 
 /* clobbers:
  *  %ax, %bx, bootsig
+ */
+enable_a20:
+	call test_a20
+	jnz _enable_a20
+	movw $a20_trying, %bx
+	call puts
+	bios_eisa_a20 $BIOS_EISA_A20_ENABLE
+	call test_a20
+	jnz _enable_a20
+	movw $a20_syscontroller, %bx
+	call puts
+	movb $CONTROLLER_SYSTEM_PORT_A_A20_ENABLE, %ah
+	call manage_a20_syscontroller
+	call test_a20
+_enable_a20:
+	movb %al, %ch
+	movw $a20_status, %bx
+	call puts
+	movw $a20_dis, %bx
+	movw $a20_en, %si
+	movb %ch, %al
+	call report_status
+	movw $a20_abled, %bx
+	call puts
+	ret
+
+/* clobbers:
+ *  %ax, %bx, bootsig
  * returns:
  *  %al whether A20 line is enabled
+ *  ZF  logical inverse of %al
  */
 test_a20:
 	movw $0, %ax
@@ -88,6 +116,19 @@ test_a20:
 	wbinvd
 	cmpw %fs:0x10(%bx), %ax
 	setneb %al
+	ret
+
+/* params:
+ *  %ah desired A20 gate state
+ * clobbers:
+ *  %ax
+ */
+manage_a20_syscontroller:
+	inb $CONTROLLER_SYSTEM_PORT_A, %al
+	andb $0x1, %ah
+	shlb $CONTROLLER_SYSTEM_PORT_A_A20_BIT, %ah
+	orb %ah, %al
+	outb %al, $CONTROLLER_SYSTEM_PORT_A
 	ret
 
 /* params:
@@ -147,10 +188,20 @@ splash:
 	.ascii "Booting HeliOS...\r\n\n"
 stack_ok:
 	.asciz "Stack initialized\r\n"
-a20_disabled:
-	.asciz "Address line 20 appears to be tied to ground\r\n"
-a20_enabled:
-	.asciz "Address line 20 appears to be operational\r\n"
+a20_trying:
+	.ascii "Enabling A20..."
+a20_bios:
+	.asciz "trying BIOS..."
+a20_syscontroller:
+	.asciz "trying system controller..."
+a20_status:
+	.asciz "A20 is "
+a20_dis:
+	.asciz "dis"
+a20_en:
+	.asciz "en"
+a20_abled:
+	.asciz "abled\r\n"
 load_ok:
 	.asciz "Payload loaded from disk\r\n"
 err_load_failed:

@@ -14,6 +14,7 @@
 
 #define BIOS_IRQ_SCREEN 0x10
 #define BIOS_IRQ_DISK   0x13
+#define BIOS_IRQ_EISA   0x15 // Extended Industry "Standard" Architecture
 
 /*
  * Service routine signatures
@@ -37,6 +38,9 @@
 #define BIOS_OP_DISK_XREAD 0x42
 #define BIOS_GPR_DISK_XREAD_DRIVE %dl
 #define BIOS_GPR_DISK_XREAD_STRUCT %si // %ds ptr, word-aligned
+
+#define BIOS_OP_EISA_A20 0x24
+#define BIOS_GPR_EISA_A20_FUNC %al
 
 /*
  * Service routine arguments
@@ -107,6 +111,12 @@
 	movw %sp, %bp
 	movw 6(%bp), %ds
 	addw (%bp), %sp
+.endm
+
+.macro bios_eisa_a20 func
+	movb \func, BIOS_GPR_EISA_A20_FUNC
+	movb $BIOS_OP_EISA_A20, BIOS_GPR_OPERATION
+	int $BIOS_IRQ_EISA
 .endm
 
 #endif
